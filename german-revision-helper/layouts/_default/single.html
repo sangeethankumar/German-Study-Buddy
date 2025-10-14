@@ -1,0 +1,9 @@
+{{ define "main" }}
+  <h2>{{ .Title }}</h2>
+  {{ with .Date }}<div class="meta">{{ .Format "2006-01-02" }}</div>{{ end }}
+  <article class="content">
+    {{ .Content }}
+  </article>
+  {{ with .Params.topics }}<div class="meta">Topics: {{ delimit . ", " }}</div>{{ end }}
+  {{ with .Params.level }}<div class="meta">Level: {{ . }}</div>{{ end }}
+{{ end }}

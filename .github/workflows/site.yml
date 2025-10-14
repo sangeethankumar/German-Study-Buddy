@@ -1,0 +1,66 @@
+name: Validate → Split → Build Hugo → Deploy Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'source/**'
+      - 'tools/**'
+      - 'german-revision-helper/**'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python deps for validators
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Validate source
+        run: python tools/validate_source.py
+
+      - name: Split to Hugo content
+        run: python tools/splitter.py
+
+      - name: Validate generated front matter
+        run: python tools/validate_frontmatter.py
+
+      - name: Set up Hugo (extended)
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: '0.128.0'
+          extended: true
+
+      - name: Build Hugo (no theme)
+        working-directory: ./german-revision-helper
+        run: hugo --minify
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./german-revision-helper/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
