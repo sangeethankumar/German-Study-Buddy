@@ -2,3 +2,7 @@
 # pixi environments
 .pixi
 *.egg-info
+
+# Markdown files
+/source/
+/german-revision-helper/content/
